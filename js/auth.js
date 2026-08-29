@@ -1,16 +1,13 @@
 /**
  * Amata LIFF Passcode Protection (SHA-256 Hashed)
  * ป้องกันการเข้าใช้งาน Mockup ด้วยรหัสผ่านแบบ One-Way Cryptographic Hash
- * รหัสผ่านจริงจะไม่ปรากฏใน Source Code บน GitHub (ปลอดภัยสำหรับ Public Repository)
- *
- * Default Passcode: amata2026
- * SHA-256 Hash: 96014ae2b86cf023c465424c867e11e19500d0e22736ef96deec2680694bf718
+ * รหัสผ่านจริงจะไม่ปรากฏใน Source Code บน GitHub
  */
 
 class AmataAuthManager {
   constructor() {
-    // SHA-256 Hash ของรหัสผ่าน "amata2026"
-    this.PASSPHRASE_HASH = "96014ae2b86cf023c465424c867e11e19500d0e22736ef96deec2680694bf718";
+    // SHA-256 Hash ของรหัสผ่านที่กำหนด
+    this.PASSPHRASE_HASH = "dba2da6693cf76ee7b2d1eb0e41aee1234fee9ae5038b88cb1d18bbe5025608b";
     this.SESSION_KEY = "amata_liff_authenticated";
   }
 
