@@ -1,11 +1,11 @@
 /* ==========================================================================
    Amata LINE LIFF Issue Reporting Stylesheet
-   Engineered for iPhone SE (375x667) & All Mobile Viewports
-   Strictly compact, Zero-overflow architecture, WCAG 2.1 / 2.2 AA Compliant
+   UX-Engineered for iPhone SE (375x667) & All Mobile Screens
+   Single Column Category List with Search, Enhanced Review Cards, Dual Back Buttons
    ========================================================================== */
 
 :root {
-  /* Amata Forest Green & High-Contrast Colors */
+  /* Brand Tokens */
   --primary: #0C382E;
   --primary-dark: #06201A;
   --primary-light: #135A4B;
@@ -25,7 +25,7 @@
   --bg-page: #F3F4F6;
   --bg-card: #FFFFFF;
   
-  /* Text & Border Tokens (WCAG AA > 4.5:1) */
+  /* Accessible Text (WCAG AA > 4.5:1) */
   --text-main: #111827;
   --text-muted: #374151;
   --text-subtle: #4B5563;
@@ -59,7 +59,7 @@ html, body {
   background-color: var(--bg-page);
   color: var(--text-main);
   -webkit-font-smoothing: antialiased;
-  overflow: hidden; /* Prevent outer body bounce on mobile */
+  overflow: hidden;
 }
 
 body {
@@ -81,13 +81,13 @@ body {
   border-width: 0;
 }
 
-/* Focus Visible for Accessibility */
+/* Focus Visible */
 :focus-visible {
   outline: 2.5px solid var(--accent) !important;
   outline-offset: 1px !important;
 }
 
-/* App Container (Fits iPhone SE 375px up to Tablet) */
+/* App Container */
 .app-container {
   width: 100%;
   max-width: 430px;
@@ -101,7 +101,7 @@ body {
 }
 
 /* ==========================================================================
-   UNIFIED HEADER (รวม Header + ชื่อขั้นตอน + ปุ่ม Back/Close ใน 44px)
+   UNIFIED 44px HEADER
    ========================================================================== */
 .liff-header {
   height: var(--header-height);
@@ -126,10 +126,14 @@ body {
   text-align: center;
   overflow: hidden;
   padding: 0 4px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
 }
 
 .header-step-badge {
-  font-size: 10px;
+  font-size: 9.5px;
   font-weight: 700;
   background: rgba(255, 255, 255, 0.22);
   padding: 1px 6px;
@@ -137,10 +141,11 @@ body {
   display: inline-block;
   color: #E2F0EC;
   letter-spacing: 0.2px;
+  line-height: 1.2;
 }
 
 .header-title-main {
-  font-size: 13px;
+  font-size: 12.5px;
   font-weight: 600;
   line-height: 1.1;
   color: #FFFFFF;
@@ -180,7 +185,7 @@ body {
 }
 
 /* ==========================================================================
-   MAIN SCROLLABLE WORKSPACE
+   MAIN SCROLLABLE CONTENT
    ========================================================================== */
 .main-content {
   flex: 1;
@@ -188,7 +193,7 @@ body {
   flex-direction: column;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  padding: 10px 12px;
+  padding: 8px 10px;
 }
 
 .step-section {
@@ -212,11 +217,11 @@ body {
 .instruction-bar {
   background: var(--primary-subtle);
   border-left: 3px solid var(--primary);
-  padding: 5px 8px;
+  padding: 4px 8px;
   border-radius: 4px;
   font-size: 11.5px;
   color: var(--primary-dark);
-  line-height: 1.25;
+  line-height: 1.2;
 }
 
 .instruction-bar .sub-en {
@@ -324,7 +329,7 @@ body {
 .map-wrapper {
   position: relative;
   width: 100%;
-  height: 155px; /* Compact height for iPhone SE */
+  height: 150px;
 }
 
 #map-container {
@@ -576,9 +581,149 @@ body {
 }
 
 /* ==========================================================================
-   STEP 4: CATEGORY GRID
+   STEP 4: CATEGORY SINGLE COLUMN LIST & REAL-TIME SEARCH
    ========================================================================== */
-.category-grid-wrapper {
+.category-search-box {
+  position: relative;
+  margin-bottom: 4px;
+}
+
+.category-search-input {
+  width: 100%;
+  padding: 7px 10px 7px 32px;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  font-family: var(--font-family);
+  font-size: 12px;
+  color: var(--text-main);
+  background: #FFFFFF;
+  outline: none;
+  min-height: 34px;
+  transition: border-color 0.15s;
+}
+
+.category-search-input:focus {
+  border-color: var(--primary);
+  box-shadow: 0 0 0 2px rgba(12, 56, 46, 0.15);
+}
+
+.category-search-icon {
+  position: absolute;
+  left: 9px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-subtle);
+  pointer-events: none;
+}
+
+.category-list-single {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  max-height: calc(100dvh - 180px);
+  padding-right: 2px;
+}
+
+.category-list-item {
+  background: #FFFFFF;
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 7px 10px;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  cursor: pointer;
+  transition: all 0.15s;
+  text-align: left;
+  min-height: 46px;
+}
+
+.category-list-item:hover {
+  border-color: var(--primary-light);
+  background: #F8FAFC;
+}
+
+.category-list-item.active {
+  border-color: var(--primary);
+  background: #F0FDF4;
+  box-shadow: 0 0 0 1.5px var(--primary);
+}
+
+.category-item-icon {
+  width: 30px;
+  height: 30px;
+  border-radius: 6px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.category-item-content {
+  flex: 1;
+  min-width: 0;
+}
+
+.category-item-header {
+  display: flex;
+  align-items: baseline;
+  gap: 4px;
+}
+
+.category-item-title-th {
+  font-size: 12px;
+  font-weight: 600;
+  color: var(--text-main);
+  line-height: 1.2;
+}
+
+.category-item-title-en {
+  font-size: 10px;
+  color: var(--text-subtle);
+  font-weight: 500;
+}
+
+.category-item-examples {
+  font-size: 10px;
+  color: var(--text-muted);
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  margin-top: 1px;
+}
+
+.category-item-radio {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  border: 2px solid var(--border-color);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  transition: all 0.15s;
+}
+
+.category-list-item.active .category-item-radio {
+  border-color: var(--primary);
+  background: var(--primary);
+  color: #FFFFFF;
+}
+
+.no-results-msg {
+  padding: 16px;
+  text-align: center;
+  font-size: 12px;
+  color: var(--text-muted);
+}
+
+/* ==========================================================================
+   STEP 5: ENHANCED REVIEW SUMMARY CARDS (UX BEST PRACTICE)
+   ========================================================================== */
+.review-container {
   flex: 1;
   display: flex;
   flex-direction: column;
@@ -586,169 +731,71 @@ body {
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
   max-height: calc(100dvh - 150px);
+  padding-right: 2px;
 }
 
-.category-grid {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 6px;
-  padding-bottom: 4px;
-}
-
-.category-card {
-  background: #FFFFFF;
-  border: 1.5px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 6px 8px;
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  cursor: pointer;
-  transition: all 0.15s;
-  text-align: left;
-  min-height: 48px;
-}
-
-.category-card:hover {
-  border-color: var(--primary-light);
-  background: #F8FAFC;
-}
-
-.category-card.active {
-  border-color: var(--primary);
-  background: #F0FDF4;
-  box-shadow: 0 0 0 1.5px var(--primary);
-}
-
-.category-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.category-info {
-  flex: 1;
-  min-width: 0;
-}
-
-.category-title-th {
-  font-size: 11px;
-  font-weight: 600;
-  color: var(--text-main);
-  line-height: 1.15;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.category-title-en {
-  font-size: 9.5px;
-  color: var(--text-subtle);
-  font-weight: 500;
-  line-height: 1.1;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-}
-
-.category-check {
-  width: 16px;
-  height: 16px;
-  border-radius: 50%;
-  background: var(--primary);
-  color: #FFFFFF;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-.category-card.active .category-check {
-  display: flex;
-}
-
-.selected-category-banner {
-  background: #FFFFFF;
-  border: 1.5px solid var(--accent);
-  border-radius: var(--radius-sm);
-  padding: 6px 8px;
-}
-
-.selected-cat-inner {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
-
-.cat-badge-icon {
-  width: 28px;
-  height: 28px;
-  border-radius: 6px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
-}
-
-/* ==========================================================================
-   STEP 5: REVIEW SUMMARY
-   ========================================================================== */
-.review-card {
+.review-section-card {
   background: #FFFFFF;
   border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  border-radius: var(--radius-sm);
   padding: 8px 10px;
   display: flex;
   flex-direction: column;
-  gap: 6px;
+  gap: 4px;
   box-shadow: var(--shadow-sm);
-  overflow-y: auto;
-  max-height: calc(100dvh - 160px);
 }
 
-.review-item {
+.review-section-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
   border-bottom: 1px solid #F3F4F6;
-  padding-bottom: 5px;
+  padding-bottom: 3px;
 }
 
-.review-item:last-child {
-  border-bottom: none;
-  padding-bottom: 0;
-}
-
-.review-label {
-  font-size: 10px;
+.review-section-title {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  font-size: 11px;
   font-weight: 700;
   text-transform: uppercase;
   letter-spacing: 0.3px;
-  color: var(--text-muted);
-  margin-bottom: 1px;
+  color: var(--primary);
 }
 
-.review-cat-icon {
-  width: 26px;
-  height: 26px;
-  border-radius: 6px;
-  display: flex;
+.review-edit-link {
+  font-size: 10.5px;
+  color: var(--accent-dark);
+  font-weight: 600;
+  cursor: pointer;
+  background: none;
+  border: none;
+  padding: 0;
+  text-decoration: underline;
+}
+
+.review-cat-tag {
+  display: inline-flex;
   align-items: center;
-  justify-content: center;
-  flex-shrink: 0;
+  gap: 6px;
+  background: #F0FDF4;
+  border: 1px solid #BBF7D0;
+  border-radius: 4px;
+  padding: 4px 8px;
+  margin-bottom: 2px;
 }
 
 .review-photo-grid {
   display: flex;
-  gap: 4px;
+  gap: 6px;
   overflow-x: auto;
   padding-top: 2px;
 }
 
 .review-photo-img {
-  width: 48px;
-  height: 48px;
+  width: 52px;
+  height: 52px;
   border-radius: 4px;
   object-fit: cover;
   border: 1px solid var(--border-color);
@@ -756,7 +803,7 @@ body {
 }
 
 /* ==========================================================================
-   STICKY BOTTOM ACTION BAR (HEIGHT 48px)
+   STICKY BOTTOM ACTIONS (DUAL BUTTONS: BACK + NEXT)
    ========================================================================== */
 .form-actions-bar {
   position: sticky;
@@ -771,7 +818,7 @@ body {
 }
 
 .btn-main {
-  flex: 1;
+  flex: 2;
   background: linear-gradient(135deg, var(--primary) 0%, var(--primary-light) 100%);
   color: #FFFFFF;
   border: none;
@@ -799,6 +846,30 @@ body {
   color: #F1F5F9;
   cursor: not-allowed;
   box-shadow: none;
+}
+
+.btn-outline {
+  flex: 1;
+  background: #FFFFFF;
+  color: var(--text-main);
+  border: 1.5px solid var(--border-color);
+  border-radius: var(--radius-sm);
+  padding: 8px 10px;
+  font-family: var(--font-family);
+  font-size: 12.5px;
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 4px;
+  min-height: 38px;
+  cursor: pointer;
+  transition: all 0.15s;
+}
+
+.btn-outline:hover {
+  background: #F8FAFC;
+  border-color: var(--text-muted);
 }
 
 .sub-en-btn {
@@ -877,7 +948,7 @@ body {
 
 .passcode-btn-row {
   display: flex;
-  justify-content: flex-end; /* Right-aligned button below input */
+  justify-content: flex-end;
 }
 
 .btn-unlock-right {
@@ -932,12 +1003,6 @@ body {
   font-size: 16px;
   font-weight: 700;
   color: var(--primary);
-}
-
-.success-subtitle {
-  font-size: 11px;
-  color: var(--text-muted);
-  line-height: 1.2;
 }
 
 .ticket-card {
@@ -1012,49 +1077,6 @@ body {
   display: flex;
   flex-direction: column;
   gap: 6px;
-}
-
-.btn-outline {
-  width: 100%;
-  background: #FFFFFF;
-  color: var(--text-main);
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-sm);
-  padding: 8px;
-  font-family: var(--font-family);
-  font-size: 12.5px;
-  font-weight: 600;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 4px;
-  min-height: 36px;
-  cursor: pointer;
-}
-
-/* Modals & Toasts */
-.modal-backdrop {
-  position: fixed;
-  inset: 0;
-  background: rgba(0, 0, 0, 0.6);
-  backdrop-filter: blur(4px);
-  z-index: 2000;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  padding: 12px;
-}
-
-.modal-dialog {
-  background: #FFFFFF;
-  border-radius: var(--radius-md);
-  width: 100%;
-  max-width: 320px;
-  padding: 16px;
-  box-shadow: var(--shadow-lg);
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
 }
 
 .app-toast {

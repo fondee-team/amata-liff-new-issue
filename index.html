@@ -91,7 +91,7 @@
       </div>
     </header>
 
-    <!-- Main Content Body (Zero Progress Bar Overhead) -->
+    <!-- Main Content Body -->
     <main class="main-content" id="main-content" role="main">
 
       <!-- ==========================================
@@ -207,6 +207,10 @@
         </div>
 
         <div class="form-actions-bar">
+          <button type="button" class="btn-outline" id="step2-back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>ย้อนกลับ</span>
+          </button>
           <button type="button" class="btn-main" id="step2-next-btn">
             <span>ถัดไป <span class="sub-en-btn">/ Next</span></span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
@@ -251,6 +255,10 @@
         </div>
 
         <div class="form-actions-bar">
+          <button type="button" class="btn-outline" id="step3-back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>ย้อนกลับ</span>
+          </button>
           <button type="button" class="btn-main" id="step3-next-btn">
             <span>ถัดไป <span class="sub-en-btn">/ Next</span></span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
@@ -259,7 +267,7 @@
       </section>
 
       <!-- ==========================================
-           STEP 4: SELECT CATEGORY
+           STEP 4: SELECT CATEGORY (SINGLE COLUMN + SEARCH)
            ========================================== -->
       <section class="step-section hidden" id="step-4" aria-label="เลือกประเภท / Category">
         <div class="instruction-bar" role="note">
@@ -267,16 +275,22 @@
           <div class="sub-en">Select complaint category.</div>
         </div>
 
-        <div id="selected-category-banner" class="selected-category-banner hidden" role="region" aria-live="polite"></div>
+        <!-- Real-time Search Box -->
+        <div class="category-search-box">
+          <svg class="category-search-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+          <input type="text" id="category-search-input" class="category-search-input" placeholder="พิมพ์ค้นหาประเภทปัญหา... / Search category" autocomplete="off" />
+        </div>
 
-        <!-- 13 Categories Grid (Scrollable Box) -->
-        <div class="category-grid-wrapper">
-          <div class="category-grid" id="category-grid" role="radiogroup" aria-label="รายการประเภทเรื่องร้องเรียน / Categories">
-            <!-- Rendered from categories.js -->
-          </div>
+        <!-- Single Column Category List -->
+        <div class="category-list-single" id="category-list-single" role="radiogroup" aria-label="รายการประเภทเรื่องร้องเรียน / Categories">
+          <!-- Rendered dynamically -->
         </div>
 
         <div class="form-actions-bar">
+          <button type="button" class="btn-outline" id="step4-back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>ย้อนกลับ</span>
+          </button>
           <button type="button" class="btn-main" id="step4-next-btn" disabled>
             <span>ตรวจสอบ <span class="sub-en-btn">/ Review</span></span>
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
@@ -285,7 +299,7 @@
       </section>
 
       <!-- ==========================================
-           STEP 5: REVIEW & CONFIRM
+           STEP 5: ENHANCED REVIEW SUMMARY (UX CARDS)
            ========================================== -->
       <section class="step-section hidden" id="step-5" aria-label="ตรวจสอบและยืนยันข้อมูล / Confirm">
         <div class="instruction-bar" role="note">
@@ -293,39 +307,61 @@
           <div class="sub-en">Please review information before submit.</div>
         </div>
 
-        <div class="review-card">
-          <!-- Description Item -->
-          <div class="review-item">
-            <div class="review-label">รายละเอียดปัญหา <span class="sub-en-inline">/ Details</span></div>
-            <div id="review-description" class="text-xxs text-gray-900 whitespace-pre-line leading-relaxed"></div>
+        <div class="review-container">
+          <!-- Card 1: Category & Details -->
+          <div class="review-section-card">
+            <div class="review-section-header">
+              <div class="review-section-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+                <span>ประเภทและรายละเอียด / Issue</span>
+              </div>
+              <button type="button" class="review-edit-link" onclick="app.goToStep(4)">แก้ไขหมวด</button>
+            </div>
+            <div id="review-category-badge" class="mt-1"></div>
+            <div id="review-description-text" class="text-xs text-gray-900 whitespace-pre-line leading-relaxed mt-1"></div>
           </div>
 
-          <!-- Location Item -->
-          <div class="review-item">
-            <div class="review-label">สถานที่เกิดเหตุ <span class="sub-en-inline">/ Location</span></div>
-            <div id="review-location"></div>
+          <!-- Card 2: Location -->
+          <div class="review-section-card">
+            <div class="review-section-header">
+              <div class="review-section-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>สถานที่เกิดเหตุ / Location</span>
+              </div>
+              <button type="button" class="review-edit-link" onclick="app.goToStep(2)">แก้ไข</button>
+            </div>
+            <div id="review-location-box" class="mt-1"></div>
           </div>
 
-          <!-- Photos Item -->
-          <div class="review-item">
-            <div class="review-label">รูปภาพประกอบ <span class="sub-en-inline">/ Photos</span></div>
-            <div id="review-photos"></div>
+          <!-- Card 3: Photos -->
+          <div class="review-section-card">
+            <div class="review-section-header">
+              <div class="review-section-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+                <span>รูปภาพประกอบ / Photos</span>
+              </div>
+              <button type="button" class="review-edit-link" onclick="app.goToStep(3)">แก้ไข</button>
+            </div>
+            <div id="review-photos-box" class="mt-1"></div>
           </div>
 
-          <!-- Category Item -->
-          <div class="review-item">
-            <div class="review-label">ประเภทเรื่อง <span class="sub-en-inline">/ Category</span></div>
-            <div id="review-category" class="flex items-center gap-2"></div>
-          </div>
-
-          <!-- Reporter Profile (Read-only) -->
-          <div class="review-item">
-            <div class="review-label">ข้อมูลผู้แจ้ง <span class="sub-en-inline">/ Reporter</span></div>
-            <div id="review-reporter"></div>
+          <!-- Card 4: Reporter Profile -->
+          <div class="review-section-card">
+            <div class="review-section-header">
+              <div class="review-section-title">
+                <svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <span>ผู้แจ้งเรื่อง / Reporter Profile</span>
+              </div>
+            </div>
+            <div id="review-reporter-box" class="mt-1"></div>
           </div>
         </div>
 
         <div class="form-actions-bar">
+          <button type="button" class="btn-outline" id="step5-back-btn">
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>ย้อนกลับ</span>
+          </button>
           <button type="button" class="btn-main" id="step5-submit-btn">
             <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
             <span>ยืนยันส่งเรื่อง <span class="sub-en-btn">/ Submit</span></span>
@@ -384,11 +420,11 @@
         <!-- Post-Submit Action Buttons -->
         <div class="ticket-actions">
           <button type="button" class="btn-main" id="close-liff-btn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
             <span>ปิดหน้าต่าง <span class="sub-en-btn">/ Close LIFF</span></span>
           </button>
           <button type="button" class="btn-outline" id="new-issue-btn">
-            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M12 5v14M5 12h14"/></svg>
             <span>แจ้งเรื่องใหม่อีกครั้ง <span class="sub-en-btn" style="color: var(--text-main);">/ Report Another</span></span>
           </button>
         </div>

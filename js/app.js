@@ -1,6 +1,6 @@
 /**
  * Amata LINE LIFF Issue Reporting Main Application (WCAG 2.1 / 2.2 AA Compliant)
- * Unified 44px Header Navigation, Zero Progress Bar, Optimized for iPhone SE (375x667)
+ * Unified 44px Header, Single-Column Category with Search, Enhanced Review Cards, Dual Back Navigation
  */
 
 class AmataLiffApp {
@@ -9,6 +9,7 @@ class AmataLiffApp {
     this.totalSteps = 5;
     this.maxPhotos = 3;
     this.locationMode = "gps"; // "gps" or "link"
+    this.categoryFilter = "";
     this.mapManager = new AmataMapManager();
 
     this.formData = {
@@ -61,29 +62,49 @@ class AmataLiffApp {
   }
 
   renderCategories() {
-    const grid = document.getElementById("category-grid");
-    if (!grid || typeof ISSUE_CATEGORIES === "undefined") return;
+    const list = document.getElementById("category-list-single");
+    if (!list || typeof ISSUE_CATEGORIES === "undefined") return;
 
-    grid.innerHTML = ISSUE_CATEGORIES.map((cat) => `
-      <button type="button" class="category-card" data-cat-id="${cat.id}" id="cat-btn-${cat.id}" role="radio" aria-checked="false" aria-label="${cat.titleTh} / ${cat.titleEn}">
-        <div class="category-icon" style="color: ${cat.badgeColor}; background: ${cat.badgeColor}18;" aria-hidden="true">
-          ${cat.icon}
-        </div>
-        <div class="category-info">
-          <div class="category-title-th">${cat.titleTh}</div>
-          <div class="category-title-en">${cat.titleEn}</div>
-        </div>
-        <div class="category-check" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
-            <polyline points="20 6 9 17 4 12"></polyline>
-          </svg>
-        </div>
-      </button>
-    `).join("");
+    const query = this.categoryFilter.trim().toLowerCase();
+    const filtered = ISSUE_CATEGORIES.filter(cat => {
+      if (!query) return true;
+      return (
+        cat.titleTh.toLowerCase().includes(query) ||
+        cat.titleEn.toLowerCase().includes(query) ||
+        (cat.examplesTh && cat.examplesTh.toLowerCase().includes(query)) ||
+        (cat.examplesEn && cat.examplesEn.toLowerCase().includes(query))
+      );
+    });
 
-    grid.querySelectorAll(".category-card").forEach(card => {
-      card.addEventListener("click", () => {
-        const catId = card.getAttribute("data-cat-id");
+    if (filtered.length === 0) {
+      list.innerHTML = `<div class="no-results-msg">ไม่พบหมวดหมู่ที่ค้นหา / No category found</div>`;
+      return;
+    }
+
+    list.innerHTML = filtered.map((cat) => {
+      const isSelected = this.formData.category && this.formData.category.id === cat.id;
+      return `
+        <button type="button" class="category-list-item ${isSelected ? 'active' : ''}" data-cat-id="${cat.id}" id="cat-btn-${cat.id}" role="radio" aria-checked="${isSelected ? 'true' : 'false'}" aria-label="${cat.titleTh} / ${cat.titleEn}">
+          <div class="category-item-icon" style="color: ${cat.badgeColor}; background: ${cat.badgeColor}18;" aria-hidden="true">
+            ${cat.icon}
+          </div>
+          <div class="category-item-content">
+            <div class="category-item-header">
+              <span class="category-item-title-th">${cat.titleTh}</span>
+              <span class="category-item-title-en">/ ${cat.titleEn}</span>
+            </div>
+            <div class="category-item-examples">${cat.examplesTh}</div>
+          </div>
+          <div class="category-item-radio" aria-hidden="true">
+            ${isSelected ? `<svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round"><polyline points="20 6 9 17 4 12"/></svg>` : ''}
+          </div>
+        </button>
+      `;
+    }).join("");
+
+    list.querySelectorAll(".category-list-item").forEach(item => {
+      item.addEventListener("click", () => {
+        const catId = item.getAttribute("data-cat-id");
         this.selectCategory(catId);
       });
     });
@@ -94,28 +115,7 @@ class AmataLiffApp {
     if (!category) return;
 
     this.formData.category = category;
-
-    document.querySelectorAll(".category-card").forEach(c => {
-      const isSelected = c.getAttribute("data-cat-id") === catId;
-      c.classList.toggle("active", isSelected);
-      c.setAttribute("aria-checked", isSelected ? "true" : "false");
-    });
-
-    const selectedBanner = document.getElementById("selected-category-banner");
-    if (selectedBanner) {
-      selectedBanner.innerHTML = `
-        <div class="selected-cat-inner">
-          <div class="cat-badge-icon" style="color: ${category.badgeColor}; background: ${category.badgeColor}20;" aria-hidden="true">
-            ${category.icon}
-          </div>
-          <div style="flex: 1; min-width: 0;">
-            <div class="font-bold text-gray-900 text-xs">${category.titleTh} <span class="text-xxs text-gray-600 font-normal">/ ${category.titleEn}</span></div>
-            <div class="text-xxs text-gray-600 truncate">${category.examplesTh}</div>
-          </div>
-        </div>
-      `;
-      selectedBanner.classList.remove("hidden");
-    }
+    this.renderCategories();
 
     const nextBtn = document.getElementById("step4-next-btn");
     if (nextBtn) nextBtn.disabled = false;
@@ -145,7 +145,8 @@ class AmataLiffApp {
       this.goToStep(2);
     });
 
-    // Step 2 -> Step 3
+    // Step 2 Back & Next
+    document.getElementById("step2-back-btn")?.addEventListener("click", () => this.goToStep(1));
     document.getElementById("step2-next-btn")?.addEventListener("click", () => {
       if (this.locationMode === "link" && !this.formData.location.googleMapsUrl) {
         const val = document.getElementById("gmaps-input")?.value.trim();
@@ -191,10 +192,18 @@ class AmataLiffApp {
       });
     }
 
-    // Step 3 -> Step 4
+    // Step 3 Back & Next
+    document.getElementById("step3-back-btn")?.addEventListener("click", () => this.goToStep(2));
     document.getElementById("step3-next-btn")?.addEventListener("click", () => this.goToStep(4));
 
-    // Step 4 -> Step 5
+    // Step 4 Search Input
+    document.getElementById("category-search-input")?.addEventListener("input", (e) => {
+      this.categoryFilter = e.target.value;
+      this.renderCategories();
+    });
+
+    // Step 4 Back & Next
+    document.getElementById("step4-back-btn")?.addEventListener("click", () => this.goToStep(3));
     document.getElementById("step4-next-btn")?.addEventListener("click", () => {
       if (!this.formData.category) {
         this.showToast("กรุณาเลือกประเภทเรื่องร้องเรียน / Select a category", "warning");
@@ -204,7 +213,8 @@ class AmataLiffApp {
       this.goToStep(5);
     });
 
-    // Step 5 Submit
+    // Step 5 Back & Submit
+    document.getElementById("step5-back-btn")?.addEventListener("click", () => this.goToStep(4));
     document.getElementById("step5-submit-btn")?.addEventListener("click", () => this.submitReport());
 
     // Presets with ARIA pressed
@@ -403,31 +413,44 @@ class AmataLiffApp {
     const cat = this.formData.category;
     const loc = this.formData.location;
 
-    // 1. รายละเอียด
-    const reviewDesc = document.getElementById("review-description");
-    if (reviewDesc) {
-      reviewDesc.textContent = this.formData.description;
+    // 1. หมวดหมู่ & รายละเอียด
+    const catBadge = document.getElementById("review-category-badge");
+    if (catBadge && cat) {
+      catBadge.innerHTML = `
+        <div class="review-cat-tag">
+          <div style="color: ${cat.badgeColor};" aria-hidden="true">${cat.icon}</div>
+          <div>
+            <strong class="text-xs text-gray-900">${cat.titleTh}</strong>
+            <span class="text-xxs text-gray-600">(${cat.titleEn})</span>
+          </div>
+        </div>
+      `;
+    }
+
+    const descText = document.getElementById("review-description-text");
+    if (descText) {
+      descText.textContent = this.formData.description;
     }
 
     // 2. สถานที่
-    const reviewLoc = document.getElementById("review-location");
-    if (reviewLoc) {
+    const locBox = document.getElementById("review-location-box");
+    if (locBox) {
       const gmapsLink = `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
-      reviewLoc.innerHTML = `
-        <div class="text-xs font-bold text-gray-900">${loc.estateTh} <span class="text-xxs text-gray-600 font-normal">/ ${loc.estateEn}</span></div>
-        <div class="text-xxs text-gray-600 mt-0.5">พิกัด / Coords: ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}</div>
-        <a href="${gmapsLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xxs text-emerald-800 font-bold mt-0.5 hover:underline">
-          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          Google Maps
+      locBox.innerHTML = `
+        <div class="text-xs font-bold text-gray-900">${loc.estateTh}</div>
+        <div class="text-xxs text-gray-600">พิกัด: ${loc.lat.toFixed(4)}, ${loc.lng.toFixed(4)}</div>
+        <a href="${gmapsLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xxs text-emerald-800 font-bold mt-1 hover:underline">
+          <svg width="11" height="11" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          เปิดแผนที่ Google Maps
         </a>
       `;
     }
 
     // 3. รูปภาพ (1 - 3 รูป)
-    const reviewPhotos = document.getElementById("review-photos");
-    if (reviewPhotos) {
+    const photosBox = document.getElementById("review-photos-box");
+    if (photosBox) {
       if (this.formData.photos.length > 0) {
-        reviewPhotos.innerHTML = `
+        photosBox.innerHTML = `
           <div class="review-photo-grid">
             ${this.formData.photos.map((p, idx) => `
               <img src="${p.dataUrl}" alt="Attached preview ${idx + 1}" class="review-photo-img" />
@@ -435,29 +458,15 @@ class AmataLiffApp {
           </div>
         `;
       } else {
-        reviewPhotos.innerHTML = `<span class="text-xxs text-gray-500">ไม่ได้แนบรูปภาพ / No photos</span>`;
+        photosBox.innerHTML = `<span class="text-xxs text-gray-500">ไม่ได้แนบรูปภาพ / No photos attached</span>`;
       }
     }
 
-    // 4. หมวดหมู่
-    const reviewCat = document.getElementById("review-category");
-    if (reviewCat && cat) {
-      reviewCat.innerHTML = `
-        <div class="review-cat-icon" style="color: ${cat.badgeColor}; background: ${cat.badgeColor}20;" aria-hidden="true">
-          ${cat.icon}
-        </div>
-        <div>
-          <div class="font-bold text-gray-900 text-xs">${cat.titleTh}</div>
-          <div class="text-xxs text-gray-600">${cat.titleEn}</div>
-        </div>
-      `;
-    }
-
-    // 5. ข้อมูลผู้แจ้ง (Read-only Profile)
-    const reviewReporter = document.getElementById("review-reporter");
-    if (reviewReporter) {
+    // 4. ข้อมูลผู้แจ้ง (Read-only Profile)
+    const repBox = document.getElementById("review-reporter-box");
+    if (repBox) {
       const rep = this.formData.reporter;
-      reviewReporter.innerHTML = `
+      repBox.innerHTML = `
         <div class="text-xs font-bold text-gray-900">${this.escapeHtml(rep.name)}</div>
         <div class="text-xxs text-gray-600">${this.escapeHtml(rep.company)} • ${this.escapeHtml(rep.phone)}</div>
       `;
@@ -613,6 +622,7 @@ class AmataLiffApp {
     this.formData.photos = [];
     this.formData.category = null;
     this.formData.ticket = null;
+    this.categoryFilter = "";
 
     const descInput = document.getElementById("description-input");
     if (descInput) descInput.value = "";
@@ -626,11 +636,11 @@ class AmataLiffApp {
     const gmapsResolvedBox = document.getElementById("gmaps-resolved-box");
     if (gmapsResolvedBox) gmapsResolvedBox.classList.add("hidden");
 
+    const searchInput = document.getElementById("category-search-input");
+    if (searchInput) searchInput.value = "";
+
     this.renderPhotoGallery();
     this.renderCategories();
-
-    const selectedBanner = document.getElementById("selected-category-banner");
-    if (selectedBanner) selectedBanner.classList.add("hidden");
 
     const nextBtn = document.getElementById("step4-next-btn");
     if (nextBtn) nextBtn.disabled = true;
