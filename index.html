@@ -1,0 +1,544 @@
+<!DOCTYPE html>
+<html lang="th">
+<head>
+  <meta charset="UTF-8" />
+  <!-- WCAG 1.4.4: Allow zoom & scale -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <meta name="theme-color" content="#0C382E" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
+  
+  <title>แจ้งเรื่องใหม่ / Report Issue - Amata LIFF</title>
+  
+  <!-- Google Fonts: Prompt -->
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+  <link href="https://fonts.googleapis.com/css2?family=Prompt:wght@400;500;600;700&display=swap" rel="stylesheet" />
+
+  <!-- Leaflet Map CSS -->
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" integrity="sha256-p4NxAoJBhIIN+hmNHrzRCf9tD/miZyoHS5obTRR9BMY=" crossorigin="" />
+
+  <!-- App Custom Stylesheet -->
+  <link rel="stylesheet" href="css/style.css" />
+</head>
+<body>
+
+  <!-- Passcode Lock Screen Overlay (SHA-256 Hashed Protection) -->
+  <div class="lock-screen-overlay" id="passcode-lock-screen" role="dialog" aria-modal="true" aria-labelledby="lock-title">
+    <div class="lock-dialog-card">
+      <div class="lock-icon-badge" aria-hidden="true">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect>
+          <path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+        </svg>
+      </div>
+      <div>
+        <h2 class="lock-title" id="lock-title">เข้าสู่ระบบทดสอบ AMATA LIFF</h2>
+        <div class="text-xs text-gray-700 font-medium mt-1">Protected Prototype Access</div>
+      </div>
+      <p class="lock-desc">
+        กรุณากรอกรหัสผ่านเพื่อเข้าทดลองใช้งานแบบฟอร์ม
+        <br/><span class="text-xs text-gray-500">Please enter the access passcode to continue.</span>
+      </p>
+
+      <form id="passcode-form" class="flex flex-col gap-3">
+        <label for="passcode-input" class="sr-only">รหัสผ่าน / Passcode</label>
+        <input type="password" id="passcode-input" class="form-input passcode-input" placeholder="••••••••" maxlength="20" required autofocus autocomplete="off" />
+        
+        <div id="passcode-error" class="text-xs text-red-600 font-semibold hidden" role="alert"></div>
+
+        <button type="submit" class="btn-main" id="unlock-btn">
+          <span>เข้าใช้งาน <span class="sub-en-btn">/ Unlock</span></span>
+        </button>
+      </form>
+    </div>
+  </div>
+
+  <!-- Main Mobile App Wrapper -->
+  <div class="app-container">
+    
+    <!-- Top Header (LINE LIFF Header Simulation) -->
+    <header class="liff-header" role="banner">
+      <div class="header-left">
+        <div class="header-logo-icon" aria-hidden="true">
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="#FFFFFF" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round">
+            <path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5"/>
+          </svg>
+        </div>
+        <div class="header-title-box">
+          <h1 class="header-title">แจ้งเรื่องใหม่ <span class="sub-en-header">/ Report Issue</span></h1>
+          <span class="header-subtitle">AMATA Smart Service (LINE LIFF)</span>
+        </div>
+      </div>
+      <div class="header-actions">
+        <button type="button" class="header-btn" id="header-close-btn" aria-label="ปิดหน้าต่าง LIFF / Close LIFF window">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <line x1="18" y1="6" x2="6" y2="18"></line>
+            <line x1="6" y1="6" x2="18" y2="18"></line>
+          </svg>
+        </button>
+      </div>
+    </header>
+
+    <!-- Multi-step Wizard Progress Bar (5 Steps) -->
+    <nav class="wizard-progress-bar" id="wizard-progress" aria-label="ลำดับขั้นตอนการแจ้งเรื่อง / Step Progress">
+      <div class="step-tracker" role="progressbar" id="progress-bar-tracker" aria-valuemin="1" aria-valuemax="5" aria-valuenow="1" aria-valuetext="ขั้นตอนที่ 1 จาก 5: พิมพ์รายละเอียดเรื่องแจ้ง / Step 1 of 5: Type Complaint Details">
+        
+        <!-- Step 1 Indicator: Details -->
+        <div class="progress-step active" id="progress-step-1" aria-current="step">
+          <div class="step-circle" aria-hidden="true">1</div>
+          <span class="step-label">รายละเอียด</span>
+          <span class="step-sublabel">Details</span>
+        </div>
+        <div class="progress-line" id="progress-line-1" aria-hidden="true"></div>
+
+        <!-- Step 2 Indicator: Location -->
+        <div class="progress-step" id="progress-step-2">
+          <div class="step-circle" aria-hidden="true">2</div>
+          <span class="step-label">ตำแหน่ง</span>
+          <span class="step-sublabel">Location</span>
+        </div>
+        <div class="progress-line" id="progress-line-2" aria-hidden="true"></div>
+
+        <!-- Step 3 Indicator: Photos -->
+        <div class="progress-step" id="progress-step-3">
+          <div class="step-circle" aria-hidden="true">3</div>
+          <span class="step-label">ภาพถ่าย</span>
+          <span class="step-sublabel">Photos</span>
+        </div>
+        <div class="progress-line" id="progress-line-3" aria-hidden="true"></div>
+
+        <!-- Step 4 Indicator: Category -->
+        <div class="progress-step" id="progress-step-4">
+          <div class="step-circle" aria-hidden="true">4</div>
+          <span class="step-label">ประเภท</span>
+          <span class="step-sublabel">Category</span>
+        </div>
+        <div class="progress-line" id="progress-line-4" aria-hidden="true"></div>
+
+        <!-- Step 5 Indicator: Review -->
+        <div class="progress-step" id="progress-step-5">
+          <div class="step-circle" aria-hidden="true">5</div>
+          <span class="step-label">ยืนยัน</span>
+          <span class="step-sublabel">Confirm</span>
+        </div>
+      </div>
+
+      <!-- Current Step Title -->
+      <div class="step-indicator-title" aria-live="polite">
+        <h2 id="step-title-th" class="font-bold text-sm text-primary">ขั้นตอนที่ 1: พิมพ์รายละเอียดเรื่องแจ้ง</h2>
+        <div id="step-title-en" class="text-xs text-gray-700 font-normal">Step 1: Type Complaint Details</div>
+      </div>
+    </nav>
+
+    <!-- Main Content Body -->
+    <main class="main-content" id="main-content" role="main">
+
+      <!-- ==========================================
+           STEP 1: DETAILS & REPORTER INFO
+           (พิมพ์รายละเอียดเรื่องแจ้ง)
+           ========================================== -->
+      <section class="step-section" id="step-1" aria-labelledby="step-title-th">
+        <div class="category-intro" role="note">
+          <strong>กรุณาพิมพ์รายละเอียดเรื่องร้องเรียน</strong>
+          <div class="sub-en">Please enter the details of your issue or complaint.</div>
+        </div>
+
+        <!-- Complaint Details Textarea -->
+        <div class="card-section">
+          <label class="form-label" for="description-input">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0C382E" stroke-width="2" aria-hidden="true"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+            <div>
+              <span>รายละเอียดเรื่องร้องเรียน <span style="color: #B91C1C;" aria-label="จำเป็นต้องระบุ / Required">*</span></span>
+              <span class="sub-en-label">/ Complaint Details</span>
+            </div>
+          </label>
+          <textarea id="description-input" class="form-textarea" maxlength="500" aria-required="true" aria-describedby="desc-helper char-count" placeholder="พิมพ์รายละเอียด เช่น ปัญหาที่พบ, เวลาที่เกิดเหตุ, ผลกระทบที่เกิดขึ้น...&#10;Please describe the issue, occurrence time, or damages..."></textarea>
+          <div class="textarea-footer">
+            <span id="desc-helper">พิมพ์อย่างน้อย 5 ตัวอักษร <span class="text-gray-700 font-medium">(Min 5 characters)</span></span>
+            <span id="char-count" aria-live="polite">0/500</span>
+          </div>
+        </div>
+
+        <!-- Reporter Info Card -->
+        <div class="reporter-info-card" role="region" aria-label="ข้อมูลผู้แจ้ง / Reporter Information">
+          <div class="reporter-avatar" aria-hidden="true">👤</div>
+          <div class="reporter-content">
+            <div class="reporter-name" id="display-reporter-name">คุณสมชาย รักษาดี</div>
+            <div class="reporter-detail" id="display-reporter-detail">บริษัท อมตะ คอร์ปอเรชัน จำกัด (มหาชน) • 081-234-5678</div>
+          </div>
+          <button type="button" class="btn-edit-reporter" id="edit-reporter-btn" aria-label="แก้ไขข้อมูลผู้แจ้ง / Edit reporter info">
+            <span>แก้ไข</span> <span class="text-xs font-normal">/ Edit</span>
+          </button>
+        </div>
+
+        <div class="form-actions-bar">
+          <button type="button" class="btn-main" id="step1-next-btn">
+            <span>ถัดไป <span class="sub-en-btn">/ Next</span></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           STEP 2: SHARE LOCATION (GPS vs LINK MODE)
+           (แชร์ตำแหน่ง: เลือกได้ระหว่าง GPS และ Link)
+           ========================================== -->
+      <section class="step-section hidden" id="step-2" aria-label="แชร์ตำแหน่งที่เกิดเหตุ / Share Location">
+        <div class="category-intro" role="note">
+          <strong>เลือกรูปแบบการระบุตำแหน่งที่เกิดเหตุ</strong>
+          <div class="sub-en">Select how you would like to specify the incident location.</div>
+        </div>
+
+        <!-- Mode Selector (Segmented Tabs) -->
+        <div class="location-mode-selector" role="tablist" aria-label="รูปแบบการระบุพิกัด / Location Method">
+          <button type="button" class="mode-tab-btn active" id="tab-mode-gps" role="tab" aria-selected="true" aria-controls="view-mode-gps">
+            <span>📍 พิกัดปัจจุบัน / GPS</span>
+            <span class="mode-tab-sub">Auto GPS & Map</span>
+          </button>
+          <button type="button" class="mode-tab-btn" id="tab-mode-link" role="tab" aria-selected="false" aria-controls="view-mode-link">
+            <span>🔗 วางลิงก์ Google Maps</span>
+            <span class="mode-tab-sub">Paste Maps Link</span>
+          </button>
+        </div>
+
+        <!-- MODE 1: GPS & INTERACTIVE MAP (DEFAULT) -->
+        <div id="view-mode-gps" role="tabpanel" aria-labelledby="tab-mode-gps" class="flex flex-col gap-3">
+          <div class="map-card">
+            <div class="map-wrapper">
+              <div id="map-container" role="application" aria-label="แผนที่ระบุพิกัดที่เกิดเหตุ / Interactive incident map"></div>
+              <div class="map-instruction-overlay" aria-hidden="true">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.5"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
+                <span>ลากหมุดหรือแตะบนแผนที่ <span class="sub-en-inline">/ Drag pin or tap map</span></span>
+              </div>
+            </div>
+
+            <!-- Preset Estate Pills -->
+            <div class="map-preset-bar" role="group" aria-label="เลือกนิคมอุตสาหกรรม / Select Industrial Estate">
+              <button type="button" class="preset-btn" data-preset="chonburi" aria-pressed="false">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>อมตะซิตี้ ชลบุรี <span class="sub-en-inline">Chonburi</span></span>
+              </button>
+              <button type="button" class="preset-btn" data-preset="rayong" aria-pressed="false">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M21 10c0 7-9 13-9 13s-9-6-9-13a9 9 0 0 1 18 0z"/><circle cx="12" cy="10" r="3"/></svg>
+                <span>อมตะซิตี้ ระยอง <span class="sub-en-inline">Rayong</span></span>
+              </button>
+            </div>
+
+            <!-- Location coordinates bar -->
+            <div class="location-display-box" role="status" aria-live="polite">
+              <div class="loc-text" id="current-location-text">
+                กำลังดึงพิกัด GPS ปัจจุบัน... / Detecting GPS...
+              </div>
+              <button type="button" class="btn-gps" id="gps-btn" aria-label="ดึงพิกัดตำแหน่งปัจจุบันผ่าน GPS / Refresh GPS">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 16 12 12 8"/></svg>
+                <span>พิกัดปัจจุบัน <span class="sub-en-inline">/ GPS</span></span>
+              </button>
+            </div>
+          </div>
+        </div>
+
+        <!-- MODE 2: GOOGLE MAPS LINK INPUT -->
+        <div id="view-mode-link" role="tabpanel" aria-labelledby="tab-mode-link" class="hidden flex flex-col gap-3">
+          <div class="gmaps-input-card">
+            <label class="form-label" for="gmaps-input">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#B91C1C" stroke-width="2" aria-hidden="true"><path d="M12 2C8.13 2 5 5.13 5 9c0 5.25 7 13 7 13s7-7.75 7-13c0-3.87-3.13-7-7-7z"/><circle cx="12" cy="9" r="2.5"/></svg>
+              <div>
+                <span>วางลิงก์ Google Maps หรือ พิกัด (Lat, Long)</span>
+                <div class="sub-en-label">Paste Google Maps URL or Coordinates</div>
+              </div>
+            </label>
+            <div class="gmaps-input-group">
+              <input type="text" id="gmaps-input" class="form-input" placeholder="เช่น https://maps.app.goo.gl/... หรือ 13.4183, 101.0078" />
+              <button type="button" class="btn-secondary" id="gmaps-apply-btn">แปลงพิกัด / Apply</button>
+            </div>
+
+            <div id="gmaps-resolved-box" class="mt-3 p-3 bg-emerald-50 border border-emerald-300 rounded-md text-xs text-emerald-900 font-medium hidden">
+              <div class="flex items-center gap-1.5 font-bold">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#047857" stroke-width="2.5"><polyline points="20 6 9 17 4 12"/></svg>
+                <span>แปลงพิกัดสำเร็จ / Location resolved</span>
+              </div>
+              <div class="mt-1" id="gmaps-resolved-text"></div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions-bar">
+          <button type="button" class="btn-outline" id="step2-back-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>ย้อนกลับ <span class="sub-en-btn">/ Back</span></span>
+          </button>
+          <button type="button" class="btn-main" id="step2-next-btn">
+            <span>ถัดไป <span class="sub-en-btn">/ Next</span></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           STEP 3: ATTACH PHOTOS (1 - 3 PHOTOS)
+           (ใส่ภาพประกอบ)
+           ========================================== -->
+      <section class="step-section hidden" id="step-3" aria-label="ใส่ภาพประกอบ / Attach Photos">
+        <div class="category-intro" role="note">
+          <strong>กรุณาส่งภาพประกอบ (1 - 3 ภาพ)</strong>
+          <div class="sub-en">Please attach photos of the incident (1 - 3 photos).</div>
+        </div>
+
+        <!-- Photo Upload Section -->
+        <div class="card-section">
+          <div class="flex justify-between items-center mb-2">
+            <label class="form-label" for="photo-input" style="margin-bottom: 0; cursor: pointer;">
+              <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0C382E" stroke-width="2" aria-hidden="true"><path d="M23 19a2 2 0 0 1-2 2H3a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h4l2-3h6l2 3h4a2 2 0 0 1 2 2z"/><circle cx="12" cy="13" r="4"/></svg>
+              <div>
+                <span>รูปภาพประกอบสถานที่/เหตุการณ์</span>
+                <div class="sub-en-label">Attached Incident Photos</div>
+              </div>
+            </label>
+            <span class="text-xs font-bold text-gray-700" id="photo-count-badge" aria-live="polite">0/3</span>
+          </div>
+
+          <div class="photo-upload-container">
+            <div class="photo-gallery" id="photo-gallery" role="region" aria-label="รายการรูปภาพที่แนบ / Attached photos list"></div>
+            
+            <input type="file" id="photo-input" accept="image/*" multiple class="sr-only" aria-label="เลือกไฟล์รูปภาพ / Choose photo files" />
+            
+            <div class="upload-trigger-btn" id="upload-trigger-btn" role="button" tabindex="0" aria-label="แตะเพื่อถ่ายภาพหรือเลือกรูปภาพ / Tap to take or choose photo">
+              <svg width="34" height="34" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <div>
+                <div class="font-semibold text-sm">แตะเพื่อถ่ายภาพ หรือเลือกรูปภาพ</div>
+                <div class="sub-en-inline">Tap to take photo or choose from gallery</div>
+                <div class="text-xs text-gray-600 mt-1">แนบได้ 1 - 3 รูป (ขนาดไม่เกิน 10MB/รูป) • 1 - 3 photos</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div class="form-actions-bar">
+          <button type="button" class="btn-outline" id="step3-back-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>ย้อนกลับ <span class="sub-en-btn">/ Back</span></span>
+          </button>
+          <button type="button" class="btn-main" id="step3-next-btn">
+            <span>ถัดไป <span class="sub-en-btn">/ Next</span></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           STEP 4: SELECT COMPLAINT CATEGORY
+           (เลือกประเภท)
+           ========================================== -->
+      <section class="step-section hidden" id="step-4" aria-label="เลือกประเภทเรื่องร้องเรียน / Select Category">
+        <div class="category-intro" role="note">
+          <strong>เลือกประเภทเรื่องร้องเรียน</strong>
+          <div class="sub-en">Select the category that matches your issue.</div>
+        </div>
+
+        <div id="selected-category-banner" class="selected-category-banner hidden" role="region" aria-live="polite"></div>
+
+        <!-- 13 Categories Grid -->
+        <div class="category-grid" id="category-grid" role="radiogroup" aria-label="รายการประเภทเรื่องร้องเรียน 13 หมวดหมู่ / 13 Complaint Categories">
+          <!-- Rendered dynamically from categories.js -->
+        </div>
+
+        <div class="form-actions-bar">
+          <button type="button" class="btn-outline" id="step4-back-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>ย้อนกลับ <span class="sub-en-btn">/ Back</span></span>
+          </button>
+          <button type="button" class="btn-main" id="step4-next-btn" disabled>
+            <span>ตรวจสอบข้อมูล <span class="sub-en-btn">/ Review</span></span>
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="9 18 15 12 9 6"/></svg>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           STEP 5: REVIEW & CONFIRM
+           (ตรวจสอบและยืนยัน)
+           ========================================== -->
+      <section class="step-section hidden" id="step-5" aria-label="ตรวจสอบและยืนยันข้อมูล / Review and Confirm">
+        <div class="category-intro" role="note">
+          <strong>ตรวจสอบความถูกต้องของข้อมูลก่อนส่ง</strong>
+          <div class="sub-en">Please review all information before submitting your report.</div>
+        </div>
+
+        <div class="review-card">
+          <!-- Description Item -->
+          <div class="review-item">
+            <div class="review-label">รายละเอียดปัญหา <span class="sub-en-inline">/ Issue Details</span></div>
+            <div id="review-description" class="text-sm text-gray-900 whitespace-pre-line leading-relaxed"></div>
+          </div>
+
+          <!-- Location Item -->
+          <div class="review-item">
+            <div class="review-label">สถานที่เกิดเหตุ <span class="sub-en-inline">/ Incident Location</span></div>
+            <div id="review-location"></div>
+          </div>
+
+          <!-- Photos Item -->
+          <div class="review-item">
+            <div class="review-label">รูปภาพประกอบ <span class="sub-en-inline">/ Attached Photos</span></div>
+            <div id="review-photos"></div>
+          </div>
+
+          <!-- Category Item -->
+          <div class="review-item">
+            <div class="review-label">ประเภทเรื่องร้องเรียน <span class="sub-en-inline">/ Complaint Category</span></div>
+            <div id="review-category" class="flex items-center gap-3"></div>
+          </div>
+
+          <!-- Reporter Item -->
+          <div class="review-item">
+            <div class="review-label">ข้อมูลผู้แจ้ง <span class="sub-en-inline">/ Reporter Information</span></div>
+            <div id="review-reporter"></div>
+          </div>
+        </div>
+
+        <div class="form-actions-bar">
+          <button type="button" class="btn-outline" id="step5-back-btn">
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="15 18 9 12 15 6"/></svg>
+            <span>แก้ไข <span class="sub-en-btn">/ Edit</span></span>
+          </button>
+          <button type="button" class="btn-main" id="step5-submit-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+            <span>ยืนยันส่งเรื่อง <span class="sub-en-btn">/ Submit</span></span>
+          </button>
+        </div>
+      </section>
+
+      <!-- ==========================================
+           SUCCESS SCREEN: TICKET SUMMARY CARD
+           (หน้าผลลัพธ์แจ้งสำเร็จ)
+           ========================================== -->
+      <section class="success-screen hidden" id="success-screen" aria-label="ผลการแจ้งเรื่อง / Submission Result">
+        <div class="success-hero">
+          <div class="success-icon-badge" aria-hidden="true">
+            <svg width="36" height="36" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+              <polyline points="20 6 9 17 4 12"></polyline>
+            </svg>
+          </div>
+          <h2 class="success-title">แจ้งเรื่องร้องเรียนสำเร็จ</h2>
+          <div class="text-xs text-gray-700 font-semibold mt-0.5">Case Submitted Successfully</div>
+          <p class="success-subtitle">ระบบได้บันทึกข้อมูลและส่งให้เจ้าหน้าที่เรียบร้อยแล้ว<br/><span class="text-xs text-gray-600 font-medium">Your report has been logged and assigned to staff.</span></p>
+        </div>
+
+        <!-- Ticket Card Component -->
+        <div class="ticket-card" role="region" aria-label="บัตรแจ้งเรื่องร้องเรียน / Incident Ticket">
+          <div class="ticket-header">
+            <div>
+              <div class="text-xs opacity-90">รหัสอ้างอิง <span class="sub-en-inline" style="color: #E2F0EC;">/ Ticket ID</span></div>
+              <div class="ticket-id" id="ticket-id-display">#AM-202602-089</div>
+            </div>
+            <div class="status-badge" id="ticket-status-badge">
+              <span>รอรับเรื่องร้องเรียน</span>
+              <span class="text-xs font-normal opacity-90">/ Pending</span>
+            </div>
+          </div>
+
+          <div class="ticket-body">
+            <div class="ticket-row">
+              <span class="ticket-row-label">วันที่แจ้ง <span class="sub-en-inline">/ Date:</span></span>
+              <span class="ticket-row-val" id="ticket-date-display">-</span>
+            </div>
+            <div class="ticket-row">
+              <span class="ticket-row-label">ประเภทเรื่อง <span class="sub-en-inline">/ Category:</span></span>
+              <span class="ticket-row-val" id="ticket-category-display">-</span>
+            </div>
+            <div class="ticket-row">
+              <span class="ticket-row-label">สถานที่ <span class="sub-en-inline">/ Location:</span></span>
+              <span class="ticket-row-val" id="ticket-location-display">-</span>
+            </div>
+            <div class="ticket-row" style="flex-direction: column; gap: 4px;">
+              <span class="ticket-row-label">รายละเอียด <span class="sub-en-inline">/ Details:</span></span>
+              <span class="text-xs text-gray-900 whitespace-pre-line mt-1 font-medium" id="ticket-desc-display">-</span>
+            </div>
+            <div id="ticket-photo-display" class="mt-2 hidden"></div>
+          </div>
+        </div>
+
+        <!-- Post-Submit Action Buttons -->
+        <div class="ticket-actions">
+          <button type="button" class="btn-main" id="close-liff-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+            <span>ปิดหน้าต่าง <span class="sub-en-btn">/ Close LIFF</span></span>
+          </button>
+          <button type="button" class="btn-outline" id="new-issue-btn">
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><path d="M12 5v14M5 12h14"/></svg>
+            <span>แจ้งเรื่องใหม่อีกครั้ง <span class="sub-en-btn" style="color: var(--text-main);">/ Report Another</span></span>
+          </button>
+        </div>
+      </section>
+
+    </main>
+
+  </div>
+
+  <!-- Reporter Edit Modal (Bilingual & Accessible Dialog) -->
+  <div class="modal-backdrop hidden" id="reporter-modal" role="dialog" aria-modal="true" aria-labelledby="modal-reporter-title">
+    <div class="modal-dialog">
+      <div class="modal-title" id="modal-reporter-title">
+        <div>แก้ไขข้อมูลผู้แจ้ง</div>
+        <div class="text-xs text-gray-700 font-normal">Edit Reporter Details</div>
+      </div>
+      <div>
+        <label class="form-label" for="reporter-name-input">ชื่อ - นามสกุล <span class="sub-en-label">/ Full Name</span></label>
+        <input type="text" id="reporter-name-input" class="form-input" value="คุณสมชาย รักษาดี" />
+      </div>
+      <div>
+        <label class="form-label" for="reporter-phone-input">เบอร์โทรศัพท์ <span class="sub-en-label">/ Phone Number</span></label>
+        <input type="tel" id="reporter-phone-input" class="form-input" value="081-234-5678" />
+      </div>
+      <div>
+        <label class="form-label" for="reporter-company-input">ชื่อบริษัท / หน่วยงาน <span class="sub-en-label">/ Company Name</span></label>
+        <input type="text" id="reporter-company-input" class="form-input" value="บริษัท อมตะ คอร์ปอเรชัน จำกัด (มหาชน)" />
+      </div>
+      <div class="flex gap-2 mt-2">
+        <button type="button" class="btn-outline" id="close-reporter-modal">ยกเลิก / Cancel</button>
+        <button type="button" class="btn-main" id="save-reporter-btn">บันทึก / Save</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- LIFF Simulation Close Modal -->
+  <div class="modal-backdrop hidden" id="liff-close-modal" role="dialog" aria-modal="true" aria-labelledby="modal-liff-title">
+    <div class="modal-dialog text-center">
+      <div style="font-size: 36px; margin: 0 auto;" aria-hidden="true">📱</div>
+      <div class="modal-title" id="modal-liff-title">
+        <div>จำลองคำสั่ง liff.closeWindow()</div>
+        <div class="text-xs text-gray-700 font-normal">Simulated LIFF Close Window</div>
+      </div>
+      <p class="text-xs text-gray-700 leading-relaxed">
+        เมื่อเปิดในแอป LINE จริง หน้าต่าง LIFF นี้จะถูกปิดโดยอัตโนมัติและส่งผู้ใช้กลับไปยังห้องแชทของ Amata
+        <br/><span class="text-xs text-gray-600 font-medium">In real LINE app, this LIFF window closes and returns to the Amata chat room.</span>
+      </p>
+      <div class="flex flex-col gap-2 mt-2">
+        <button type="button" class="btn-main" onclick="document.getElementById('liff-close-modal').classList.add('hidden')">
+          เข้าใจแล้ว / อยู่ต่อ (Stay here)
+        </button>
+        <button type="button" class="btn-outline" onclick="app.resetForm(); document.getElementById('liff-close-modal').classList.add('hidden')">
+          เริ่มแจ้งเรื่องใหม่อีกครั้ง (Start New)
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast Notification (WCAG 4.1.3 Status Messages) -->
+  <div class="app-toast" id="app-toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
+  <!-- Leaflet Map JS -->
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js" integrity="sha256-20nQCchB9co0qIjJZRGuk2/Z9VM+kNiyxNV1lvTlZBo=" crossorigin=""></script>
+  
+  <!-- LINE LIFF SDK -->
+  <script charset="utf-8" src="https://static.line-scdn.net/liff/edge/2/sdk.js"></script>
+
+  <!-- Application Scripts -->
+  <script src="js/auth.js"></script>
+  <script src="js/categories.js"></script>
+  <script src="js/map.js"></script>
+  <script src="js/app.js"></script>
+
+</body>
+</html>
