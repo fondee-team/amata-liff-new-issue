@@ -1,6 +1,6 @@
 /**
  * Amata LINE LIFF Issue Reporting Main Application (WCAG 2.1 / 2.2 AA Compliant)
- * จัดการ State ของ Multi-step Form (Location Mode Switcher: GPS vs Link, 1-3 Photos)
+ * จัดการ State ของ Multi-step Form (Clickable Step Tracker, Compact UI, Read-only Reporter in Step 5)
  */
 
 class AmataLiffApp {
@@ -8,6 +8,7 @@ class AmataLiffApp {
     this.currentStep = 1;
     this.totalSteps = 5;
     this.maxPhotos = 3;
+    this.maxReachedStep = 1;
     this.locationMode = "gps"; // "gps" or "link"
     this.mapManager = new AmataMapManager();
 
@@ -50,7 +51,6 @@ class AmataLiffApp {
             liff.getProfile().then(profile => {
               if (profile && profile.displayName) {
                 this.formData.reporter.name = profile.displayName;
-                this.updateReporterUI();
               }
             });
           }
@@ -75,7 +75,7 @@ class AmataLiffApp {
           <div class="category-title-en">${cat.titleEn}</div>
         </div>
         <div class="category-check" aria-hidden="true">
-          <svg xmlns="http://www.w3.org/2000/svg" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
+          <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round">
             <polyline points="20 6 9 17 4 12"></polyline>
           </svg>
         </div>
@@ -109,10 +109,9 @@ class AmataLiffApp {
           <div class="cat-badge-icon" style="color: ${category.badgeColor}; background: ${category.badgeColor}20;" aria-hidden="true">
             ${category.icon}
           </div>
-          <div>
-            <div class="font-bold text-gray-900 text-sm">${category.titleTh} <span class="text-xs text-gray-700 font-normal">/ ${category.titleEn}</span></div>
-            <div class="text-xs text-gray-700 mt-0.5">${category.examplesTh}</div>
-            <div class="text-xs text-gray-600 font-normal">${category.examplesEn}</div>
+          <div style="flex: 1; min-width: 0;">
+            <div class="font-bold text-gray-900 text-xs">${category.titleTh} <span class="text-xxs text-gray-600 font-normal">/ ${category.titleEn}</span></div>
+            <div class="text-xxs text-gray-600 truncate">${category.examplesTh}</div>
           </div>
         </div>
       `;
@@ -124,6 +123,22 @@ class AmataLiffApp {
   }
 
   bindEvents() {
+    // Step Navigation via Progress Tracker Buttons (คลิกเพื่อย้อนขั้นตอนได้)
+    document.querySelectorAll(".progress-step").forEach(stepBtn => {
+      stepBtn.addEventListener("click", () => {
+        const targetStep = parseInt(stepBtn.getAttribute("data-step"), 10);
+        if (!isNaN(targetStep)) {
+          if (targetStep < this.currentStep) {
+            this.goToStep(targetStep);
+          } else if (targetStep > this.currentStep) {
+            if (this.canNavigateToStep(targetStep)) {
+              this.goToStep(targetStep);
+            }
+          }
+        }
+      });
+    });
+
     // Step 1 -> Step 2
     document.getElementById("step1-next-btn")?.addEventListener("click", () => {
       const desc = this.formData.description.trim();
@@ -226,19 +241,19 @@ class AmataLiffApp {
       gpsBtn.addEventListener("click", async () => {
         gpsBtn.classList.add("loading");
         gpsBtn.innerHTML = `
-          <svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-          กำลังระบุ GPS...
+          <svg class="animate-spin" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+          กำลังระบุ...
         `;
         try {
           await this.mapManager.getCurrentLocation();
-          this.showToast("ดึงตำแหน่ง GPS สำเร็จ / GPS location retrieved", "success");
+          this.showToast("ดึงตำแหน่ง GPS สำเร็จ / GPS retrieved", "success");
         } catch (err) {
           this.showToast(err.message, "error");
         } finally {
           gpsBtn.classList.remove("loading");
           gpsBtn.innerHTML = `
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 16 12 12 8"/></svg>
-            <span>พิกัดปัจจุบัน <span class="sub-en-inline">/ GPS</span></span>
+            <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10"/><polygon points="12 8 8 12 12 16 16 12 12 8"/></svg>
+            <span>GPS</span>
           `;
         }
       });
@@ -259,7 +274,7 @@ class AmataLiffApp {
         }
         const result = this.mapManager.parseGoogleMapsUrl(val);
         if (result.success) {
-          this.showToast(`แปลงพิกัด ${result.lat}, ${result.lng} เรียบร้อย / Pinned successfully`, "success");
+          this.showToast(`แปลงพิกัด ${result.lat}, ${result.lng} เรียบร้อย / Resolved`, "success");
           this.formData.location.googleMapsUrl = val;
 
           if (gmapsResolvedBox && gmapsResolvedText) {
@@ -294,7 +309,7 @@ class AmataLiffApp {
 
       const locDisplay = document.getElementById("current-location-text");
       if (locDisplay) {
-        locDisplay.textContent = `${loc.estateTh} (Lat: ${loc.lat}, Lng: ${loc.lng})`;
+        locDisplay.textContent = `${loc.estateTh} (${loc.lat}, ${loc.lng})`;
       }
     };
 
@@ -324,32 +339,26 @@ class AmataLiffApp {
       if (countEl) countEl.textContent = `${e.target.value.length}/500`;
     });
 
-    // Reporter Edit Modal
-    document.getElementById("edit-reporter-btn")?.addEventListener("click", () => {
-      document.getElementById("reporter-modal")?.classList.remove("hidden");
-      document.getElementById("reporter-name-input")?.focus();
-    });
-    document.getElementById("close-reporter-modal")?.addEventListener("click", () => {
-      document.getElementById("reporter-modal")?.classList.add("hidden");
-      document.getElementById("edit-reporter-btn")?.focus();
-    });
-    document.getElementById("save-reporter-btn")?.addEventListener("click", () => {
-      const name = document.getElementById("reporter-name-input")?.value.trim();
-      const phone = document.getElementById("reporter-phone-input")?.value.trim();
-      const company = document.getElementById("reporter-company-input")?.value.trim();
-      if (name) this.formData.reporter.name = name;
-      if (phone) this.formData.reporter.phone = phone;
-      if (company) this.formData.reporter.company = company;
-      this.updateReporterUI();
-      document.getElementById("reporter-modal")?.classList.add("hidden");
-      document.getElementById("edit-reporter-btn")?.focus();
-      this.showToast("อัปเดตข้อมูลผู้แจ้งเรียบร้อย / Reporter updated", "success");
-    });
-
     // Success Screen Actions
     document.getElementById("close-liff-btn")?.addEventListener("click", () => this.closeLiffWindow());
     document.getElementById("new-issue-btn")?.addEventListener("click", () => this.resetForm());
     document.getElementById("header-close-btn")?.addEventListener("click", () => this.closeLiffWindow());
+  }
+
+  canNavigateToStep(step) {
+    if (step === 2) {
+      return this.formData.description.trim().length >= 5;
+    }
+    if (step === 3) {
+      return this.formData.description.trim().length >= 5;
+    }
+    if (step === 4) {
+      return this.formData.description.trim().length >= 5;
+    }
+    if (step === 5) {
+      return this.formData.description.trim().length >= 5 && this.formData.category !== null;
+    }
+    return true;
   }
 
   handlePhotoFiles(files) {
@@ -357,7 +366,7 @@ class AmataLiffApp {
 
     const remainingSlots = this.maxPhotos - this.formData.photos.length;
     if (remainingSlots <= 0) {
-      this.showToast(`สามารถแนบรูปภาพได้สูงสุด ${this.maxPhotos} รูป / Maximum ${this.maxPhotos} photos allowed`, "warning");
+      this.showToast(`สามารถแนบรูปภาพได้สูงสุด ${this.maxPhotos} รูป / Maximum ${this.maxPhotos} photos`, "warning");
       return;
     }
 
@@ -365,12 +374,12 @@ class AmataLiffApp {
 
     filesToProcess.forEach(file => {
       if (!file.type.startsWith("image/")) {
-        this.showToast(`ไฟล์ ${file.name} ไม่ใช่รูปภาพ / Invalid image file`, "error");
+        this.showToast(`ไฟล์ ${file.name} ไม่ใช่รูปภาพ / Invalid image`, "error");
         return;
       }
 
       if (file.size > 10 * 1024 * 1024) {
-        this.showToast(`รูปภาพ ${file.name} ใหญ่เกิน 10MB / File exceeds 10MB`, "warning");
+        this.showToast(`รูปภาพ ${file.name} ใหญ่เกิน 10MB / Exceeds 10MB`, "warning");
         return;
       }
 
@@ -403,7 +412,7 @@ class AmataLiffApp {
       <div class="photo-thumbnail-card" id="${photo.id}">
         <img src="${photo.dataUrl}" alt="Attached photo ${idx + 1}" class="photo-img" />
         <button type="button" class="photo-delete-btn" onclick="app.removePhoto('${photo.id}')" aria-label="ลบรูปภาพที่ ${idx + 1} / Delete photo ${idx + 1}" title="ลบรูปภาพ / Delete photo">
-          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
+          <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>
         </button>
         <div class="photo-badge" aria-hidden="true">#${idx + 1}</div>
       </div>
@@ -435,11 +444,11 @@ class AmataLiffApp {
     if (reviewLoc) {
       const gmapsLink = `https://www.google.com/maps?q=${loc.lat},${loc.lng}`;
       reviewLoc.innerHTML = `
-        <div class="text-sm font-bold text-gray-900">${loc.estateTh} <span class="text-xs text-gray-700 font-normal">/ ${loc.estateEn}</span></div>
-        <div class="text-xs text-gray-700 mt-1">พิกัด / Coordinates: ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}</div>
-        <a href="${gmapsLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xs text-emerald-800 font-bold mt-1 hover:underline">
-          <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
-          เปิดบน Google Maps (Open in Google Maps)
+        <div class="text-xs font-bold text-gray-900">${loc.estateTh} <span class="text-xxs text-gray-600 font-normal">/ ${loc.estateEn}</span></div>
+        <div class="text-xxs text-gray-600 mt-0.5">พิกัด / Coords: ${loc.lat.toFixed(5)}, ${loc.lng.toFixed(5)}</div>
+        <a href="${gmapsLink}" target="_blank" rel="noopener noreferrer" class="inline-flex items-center gap-1 text-xxs text-emerald-800 font-bold mt-0.5 hover:underline">
+          <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+          Google Maps
         </a>
       `;
     }
@@ -456,7 +465,7 @@ class AmataLiffApp {
           </div>
         `;
       } else {
-        reviewPhotos.innerHTML = `<span class="text-xs text-gray-700 font-medium">ไม่ได้แนบรูปภาพ / No photos attached</span>`;
+        reviewPhotos.innerHTML = `<span class="text-xs text-gray-600">ไม่ได้แนบรูปภาพ / No photos</span>`;
       }
     }
 
@@ -468,19 +477,19 @@ class AmataLiffApp {
           ${cat.icon}
         </div>
         <div>
-          <div class="font-bold text-gray-900 text-sm">${cat.titleTh}</div>
-          <div class="text-xs text-gray-700 font-medium">${cat.titleEn}</div>
+          <div class="font-bold text-gray-900 text-xs">${cat.titleTh}</div>
+          <div class="text-xxs text-gray-600">${cat.titleEn}</div>
         </div>
       `;
     }
 
-    // 5. ผู้แจ้ง
+    // 5. ผู้แจ้ง (Read-only System Info)
     const reviewReporter = document.getElementById("review-reporter");
     if (reviewReporter) {
       const rep = this.formData.reporter;
       reviewReporter.innerHTML = `
-        <div class="text-sm font-bold text-gray-900">${this.escapeHtml(rep.name)}</div>
-        <div class="text-xs text-gray-700 font-medium">${this.escapeHtml(rep.company)} • ${this.escapeHtml(rep.phone)}</div>
+        <div class="text-xs font-bold text-gray-900">${this.escapeHtml(rep.name)}</div>
+        <div class="text-xxs text-gray-600">${this.escapeHtml(rep.company)} • ${this.escapeHtml(rep.phone)}</div>
       `;
     }
   }
@@ -493,8 +502,8 @@ class AmataLiffApp {
     if (submitBtn) {
       submitBtn.disabled = true;
       submitBtn.innerHTML = `
-        <svg class="animate-spin" width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
-        กำลังบันทึกข้อมูล / Submitting...
+        <svg class="animate-spin" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" aria-hidden="true"><circle cx="12" cy="12" r="10" stroke-opacity="0.25"/><path d="M12 2a10 10 0 0 1 10 10"/></svg>
+        กำลังบันทึก...
       `;
     }
 
@@ -529,11 +538,11 @@ class AmataLiffApp {
       if (submitBtn) {
         submitBtn.disabled = false;
         submitBtn.innerHTML = `
-          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" aria-hidden="true"><polyline points="20 6 9 17 4 12"/></svg>
           <span>ยืนยันส่งเรื่อง <span class="sub-en-btn">/ Submit</span></span>
         `;
       }
-    }, 1200);
+    }, 1000);
   }
 
   renderSuccessScreen() {
@@ -545,14 +554,14 @@ class AmataLiffApp {
     document.getElementById("ticket-date-display").textContent = `${t.createdAtTh} (${t.createdAtEn})`;
     document.getElementById("ticket-category-display").textContent = cat ? `${cat.titleTh} / ${cat.titleEn}` : "-";
     document.getElementById("ticket-desc-display").textContent = this.formData.description;
-    document.getElementById("ticket-location-display").textContent = `${loc.estateTh} (Lat: ${loc.lat}, Lng: ${loc.lng})`;
+    document.getElementById("ticket-location-display").textContent = `${loc.estateTh} (${loc.lat}, ${loc.lng})`;
 
     const ticketPhoto = document.getElementById("ticket-photo-display");
     if (ticketPhoto) {
       if (this.formData.photos.length > 0) {
         ticketPhoto.innerHTML = `
-          <img src="${this.formData.photos[0].dataUrl}" alt="Attached incident photo" class="w-full h-40 object-cover rounded-lg border border-gray-200" />
-          ${this.formData.photos.length > 1 ? `<div class="text-xs text-gray-700 font-semibold mt-1 text-right">+ อีก ${this.formData.photos.length - 1} รูป (+${this.formData.photos.length - 1} more)</div>` : ""}
+          <img src="${this.formData.photos[0].dataUrl}" alt="Attached incident photo" class="w-full h-32 object-cover rounded-md border border-gray-200" />
+          ${this.formData.photos.length > 1 ? `<div class="text-xxs text-gray-700 font-semibold mt-1 text-right">+ อีก ${this.formData.photos.length - 1} รูป (+${this.formData.photos.length - 1} more)</div>` : ""}
         `;
         ticketPhoto.classList.remove("hidden");
       } else {
@@ -563,8 +572,10 @@ class AmataLiffApp {
 
   goToStep(stepNumber) {
     this.currentStep = stepNumber;
+    if (stepNumber > this.maxReachedStep) {
+      this.maxReachedStep = stepNumber;
+    }
     this.updateStepView();
-    window.scrollTo({ top: 0, behavior: "smooth" });
 
     if (stepNumber === 2) {
       setTimeout(() => {
@@ -578,7 +589,6 @@ class AmataLiffApp {
     document.querySelectorAll(".step-section").forEach(s => s.classList.add("hidden"));
     document.getElementById("wizard-progress")?.classList.add("hidden");
     document.getElementById("success-screen")?.classList.remove("hidden");
-    window.scrollTo({ top: 0, behavior: "smooth" });
   }
 
   updateStepView() {
@@ -592,25 +602,24 @@ class AmataLiffApp {
     document.getElementById("success-screen")?.classList.add("hidden");
     document.getElementById("wizard-progress")?.classList.remove("hidden");
 
-    // Update Progress Bar Tracker with ARIA
     const tracker = document.getElementById("progress-bar-tracker");
     if (tracker) {
       tracker.setAttribute("aria-valuenow", this.currentStep);
     }
 
     for (let i = 1; i <= this.totalSteps; i++) {
-      const stepItem = document.getElementById(`progress-step-${i}`);
+      const stepBtn = document.getElementById(`progress-step-${i}`);
       const lineItem = document.getElementById(`progress-line-${i}`);
 
-      if (stepItem) {
-        stepItem.classList.remove("active", "completed");
-        stepItem.removeAttribute("aria-current");
+      if (stepBtn) {
+        stepBtn.classList.remove("active", "completed");
+        stepBtn.removeAttribute("aria-current");
 
         if (i === this.currentStep) {
-          stepItem.classList.add("active");
-          stepItem.setAttribute("aria-current", "step");
+          stepBtn.classList.add("active");
+          stepBtn.setAttribute("aria-current", "step");
         } else if (i < this.currentStep) {
-          stepItem.classList.add("completed");
+          stepBtn.classList.add("completed");
         }
       }
 
@@ -654,14 +663,6 @@ class AmataLiffApp {
     }
   }
 
-  updateReporterUI() {
-    const rep = this.formData.reporter;
-    const nameEl = document.getElementById("display-reporter-name");
-    const detailEl = document.getElementById("display-reporter-detail");
-    if (nameEl) nameEl.textContent = rep.name;
-    if (detailEl) detailEl.textContent = `${rep.company} • ${rep.phone}`;
-  }
-
   closeLiffWindow() {
     if (typeof liff !== "undefined" && liff.isInClient && liff.isInClient()) {
       liff.closeWindow();
@@ -675,6 +676,7 @@ class AmataLiffApp {
     this.formData.photos = [];
     this.formData.category = null;
     this.formData.ticket = null;
+    this.maxReachedStep = 1;
 
     const descInput = document.getElementById("description-input");
     if (descInput) descInput.value = "";
@@ -697,7 +699,6 @@ class AmataLiffApp {
     const nextBtn = document.getElementById("step4-next-btn");
     if (nextBtn) nextBtn.disabled = true;
 
-    // Reset back to GPS mode default
     document.getElementById("tab-mode-gps")?.click();
 
     this.goToStep(1);
@@ -719,20 +720,20 @@ class AmataLiffApp {
     clearTimeout(this.toastTimer);
     this.toastTimer = setTimeout(() => {
       toast.className = "app-toast";
-    }, 3800);
+    }, 3200);
   }
 
   getToastIcon(type) {
     if (type === "success") {
-      return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
+      return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#10B981" stroke-width="2.5" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>`;
     }
     if (type === "error") {
-      return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
+      return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#EF4444" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="15" y1="9" x2="9" y2="15"/><line x1="9" y1="9" x2="15" y2="15"/></svg>`;
     }
     if (type === "warning") {
-      return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
+      return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#F59E0B" stroke-width="2.5" aria-hidden="true"><path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3Z"/><line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/></svg>`;
     }
-    return `<svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
+    return `<svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#3B82F6" stroke-width="2.5" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="16" x2="12" y2="12"/><line x1="12" y1="8" x2="12.01" y2="8"/></svg>`;
   }
 
   escapeHtml(str) {
