@@ -91,7 +91,7 @@ class AmataLiffApp {
           <div class="category-item-content">
             <div class="category-item-header">
               <span class="category-item-title-th">${cat.titleTh}</span>
-              <span class="category-item-title-en">/ ${cat.titleEn}</span>
+              <span class="category-item-title-en" lang="en">${cat.titleEn}</span>
             </div>
             <div class="category-item-examples">${cat.examplesTh}</div>
           </div>

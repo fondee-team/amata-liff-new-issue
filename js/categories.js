@@ -7,7 +7,7 @@
 const ISSUE_CATEGORIES = [
   {
     id: "traffic",
-    titleTh: "จราจร / ความปลอดภัย",
+    titleTh: "จราจร/ความปลอดภัย",
     titleEn: "Traffic & Safety",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="m14 12-8.5 8.5a2.12 2.12 0 1 1-3-3L11 9"/><path d="M12 18v4"/><path d="M8 22h8"/><path d="M14 6a2 2 0 1 0 4 0 2 2 0 1 0-4 0Z"/><path d="M18 2v4"/><path d="m19 13 3-3"/></svg>`,
     badgeColor: "#10B981",
@@ -16,8 +16,8 @@ const ISSUE_CATEGORIES = [
   },
   {
     id: "maintenance",
-    titleTh: "ซ่อมบำรุง",
-    titleEn: "Maintenance",
+    titleTh: "พื้นที่ส่วนกลาง (ถนน, ไฟทาง, คลอง, ความสะอาด)",
+    titleEn: "Infra & Utilities (Roads, Streetlights, Canals, Cleanliness)",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14.7 6.3a1 1 0 0 0 0 1.4l1.6 1.6a1 1 0 0 0 1.4 0l3.77-3.77a6 6 0 0 1-7.94 7.94l-6.91 6.91a2.12 2.12 0 0 1-3-3l6.91-6.91a6 6 0 0 1 7.94-7.94l-3.76 3.76z"/></svg>`,
     badgeColor: "#F59E0B",
     examplesTh: "ถนนชำรุดเป็นหลุม, ฝาท่อระบายน้ำแตก, ทางเท้าเสียหาย",
@@ -35,7 +35,7 @@ const ISSUE_CATEGORIES = [
   {
     id: "raw_water",
     titleTh: "น้ำดิบ",
-    titleEn: "Raw Water",
+    titleEn: "Raw water",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M2 6c.6.5 1.2 1 2.5 1C7 7 7 5 9.5 5c2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 12c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/><path d="M2 18c.6.5 1.2 1 2.5 1 2.5 0 2.5-2 5-2 2.6 0 2.4 2 5 2 2.5 0 2.5-2 5-2 1.3 0 1.9.5 2.5 1"/></svg>`,
     badgeColor: "#0284C7",
     examplesTh: "ท่อน้ำดิบรั่วซึม, แรงดันน้ำผิดปกติ, ปริมาณน้ำไม่เพียงพอ",
@@ -44,7 +44,7 @@ const ISSUE_CATEGORIES = [
   {
     id: "treated_water",
     titleTh: "น้ำประปา",
-    titleEn: "Treated Water",
+    titleEn: "Tap water",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/></svg>`,
     badgeColor: "#2563EB",
     examplesTh: "น้ำประปาไม่ไหล, ท่อประปาแตก, น้ำมีตะกอน/ขุ่น",
@@ -52,8 +52,8 @@ const ISSUE_CATEGORIES = [
   },
   {
     id: "waste_water",
-    titleTh: "น้ำเสีย",
-    titleEn: "Waste Water",
+    titleTh: "น้ำเสียจากโรงงาน",
+    titleEn: "Wastewater from User",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2.69l5.66 5.66a8 8 0 1 1-11.31 0z"/><path d="M9 15a3 3 0 0 0 6 0"/></svg>`,
     badgeColor: "#475569",
     examplesTh: "ท่อน้ำทิ้งอุดตัน, น้ำเสียล้นรางระบาย, กลิ่นเหม็นจากน้ำเสีย",
@@ -61,7 +61,7 @@ const ISSUE_CATEGORIES = [
   },
   {
     id: "pr_signage",
-    titleTh: "สื่อสารองค์กร / ป้าย",
+    titleTh: "สื่อสารองค์กร/ป้าย",
     titleEn: "PR & Signage",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M4 15s1-1 4-1 5 2 8 2 4-1 4-1V3s-1 1-4 1-5-2-8-2-4 1-4 1z"/><line x1="4" x2="4" y1="22" y2="15"/></svg>`,
     badgeColor: "#8B5CF6",
@@ -70,8 +70,8 @@ const ISSUE_CATEGORIES = [
   },
   {
     id: "waste_mgmt",
-    titleTh: "การจัดเก็บขยะ",
-    titleEn: "Waste Management",
+    titleTh: "การจัดการขยะภายในโรงงานเท่านั้น",
+    titleEn: "Waste Management in factory only",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 6h18"/><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6"/><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2"/><line x1="10" x2="10" y1="11" y2="17"/><line x1="14" x2="14" y1="11" y2="17"/></svg>`,
     badgeColor: "#D97706",
     examplesTh: "ขยะล้นถัง, จุดทิ้งขยะตกค้าง, ลักลอบทิ้งขยะไม่ถูกต้อง",
@@ -79,8 +79,8 @@ const ISSUE_CATEGORIES = [
   },
   {
     id: "elec_internet",
-    titleTh: "ไฟฟ้า / โทรศัพท์ / อินเตอร์เน็ต",
-    titleEn: "Elec / Tel / Internet",
+    titleTh: "ไฟฟ้า/โทรศัพท์/อินเตอร์เน็ต",
+    titleEn: "Elec/Tel/Internet",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2"/></svg>`,
     badgeColor: "#EAB308",
     examplesTh: "ไฟฟ้าส่องสว่างดับ, สายสื่อสารห้อยระโยงระยาง, เสาไฟเอียง",
@@ -88,8 +88,8 @@ const ISSUE_CATEGORIES = [
   },
   {
     id: "community",
-    titleTh: "ชุมชนสัมพันธ์",
-    titleEn: "Community Relations",
+    titleTh: "ชุมชน",
+    titleEn: "CSR",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>`,
     badgeColor: "#06B6D4",
     examplesTh: "ข้อร้องเรียนชุมชนรอบข้าง, กิจกรรมที่ส่งผลกระทบภายนอก",
@@ -106,8 +106,8 @@ const ISSUE_CATEGORIES = [
   },
   {
     id: "environment",
-    titleTh: "ปัญหาสิ่งแวดล้อม",
-    titleEn: "Environment",
+    titleTh: "ปัญหาสิ่งแวดล้อม (มลพิษอากาศ (กลิ่น, ควัน, ฝุ่น) &เสียง",
+    titleEn: "Environmental Impacts : Air (Odor, Smoke, Dust) & Noise Pollution",
     icon: `<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="4"/><path d="M12 2v2"/><path d="M12 20v2"/><path d="m4.93 4.93 1.41 1.41"/><path d="m17.66 17.66 1.41 1.41"/><path d="M2 12h2"/><path d="M20 12h2"/><path d="m6.34 17.66-1.41 1.41"/><path d="m19.07 4.93-1.41 1.41"/></svg>`,
     badgeColor: "#10B981",
     examplesTh: "กลิ่นสารเคมี, ควัน/มลพิษทางอากาศ, การทิ้งกากของเสียอันตราย",
